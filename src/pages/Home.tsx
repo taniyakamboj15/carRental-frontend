@@ -2,6 +2,7 @@
 import { Zap, Shield, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { HeroSearchWidget } from '@/components/features/HeroSearchWidget';
+import { useAuth } from '@/context/AuthContext';
 
 const HERO_IMAGE = "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2830&auto=format&fit=crop";
 
@@ -46,8 +47,24 @@ export const Home = () => {
                 </div>
 
                 {/* Search Widget */}
+                {/* Search Widget - Only for Authenticated Users */}
                 <div className="w-full absolute bottom-10 z-20 px-4">
-                    <HeroSearchWidget />
+                     {useAuth().isAuthenticated ? (
+                         <HeroSearchWidget />
+                     ) : (
+                         <motion.div 
+                             initial={{ opacity: 0, y: 20 }}
+                             animate={{ opacity: 1, y: 0 }}
+                             transition={{ delay: 0.6 }}
+                             className="max-w-md mx-auto bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl text-center shadow-xl"
+                         >
+                             <h3 className="text-xl font-bold text-white mb-2">Join the Elite Club</h3>
+                             <p className="text-gray-200 mb-4">Sign in to unlock our exclusive fleet and start your journey.</p>
+                             <a href="/login" className="inline-block bg-white text-indigo-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+                                 Login to Browse
+                             </a>
+                         </motion.div>
+                     )}
                 </div>
             </div>
 

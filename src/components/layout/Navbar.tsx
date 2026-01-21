@@ -131,19 +131,21 @@ export const Navbar = () => {
                                         </Transition>
                                     </Menu>
                                 ) : (
-                                    <div className="flex gap-4">
-                                        <Link to="/login">
-                                            <button className={clsx(
-                                                "text-sm font-semibold transition-colors",
+                                    <div className="flex items-center gap-4">
+                                        <Link 
+                                            to="/login"
+                                            className={clsx(
+                                                "text-sm font-medium transition-colors hover:scale-105",
                                                 scrolled || location.pathname !== '/' ? "text-gray-700 hover:text-indigo-600" : "text-white hover:text-indigo-200"
-                                            )}>
-                                                Log in
-                                            </button>
+                                            )}
+                                        >
+                                            Log in
                                         </Link>
-                                        <Link to="/register">
-                                            <button className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-transform hover:scale-105 active:scale-95">
-                                                Sign up
-                                            </button>
+                                        <Link 
+                                            to="/register"
+                                            className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-indigo-600 shadow-sm hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white transition-all hover:scale-105 active:scale-95"
+                                        >
+                                            Sign up
                                         </Link>
                                     </div>
                                 )}

@@ -67,6 +67,23 @@ export const Vehicles = () => {
         );
     }
 
+    if (!isAuthenticated) {
+        return (
+             <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
+                <div className="bg-indigo-50 p-8 rounded-2xl max-w-lg">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Exclusive Access</h2>
+                    <p className="text-gray-600 mb-6">Our premium fleet is reserved for registered members. Please verify your identity to view available vehicles.</p>
+                    <button 
+                        onClick={() => navigate('/login')}
+                        className="bg-indigo-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors shadow-md"
+                    >
+                        Login to View Fleet
+                    </button>
+                </div>
+            </div>
+        );
+    }
+    
     let heading = "Available Fleets";
     if (user?.is_superuser) {
         heading = "Available Fleets";
