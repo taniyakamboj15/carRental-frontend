@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Search } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Calendar, MapPin, Search, Map as MapIcon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Dialog } from '@headlessui/react';
+import { LocationPicker } from '@/components/common/LocationPicker';
 
 export const HeroSearchWidget = () => {
     const navigate = useNavigate();
@@ -9,10 +11,21 @@ export const HeroSearchWidget = () => {
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
 
+    const [isMapOpen, setIsMapOpen] = useState(false);
+
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        // In a real app, pass these as query params
-        navigate('/vehicles');
+        const params = new URLSearchParams();
+        if (location) params.append('location', location);
+        if (dateFrom) params.append('start_date', dateFrom);
+        if (dateTo) params.append('end_date', dateTo);
+        
+        navigate(`/vehicles?${params.toString()}`);
+    };
+
+    const handleLocationSelect = (loc: string) => {
+        setLocation(loc); // In real app, might want human readable address
+        // setIsMapOpen(false); // Let user confirm or close manually? Better close for flow
     };
 
     return (
@@ -36,6 +49,14 @@ export const HeroSearchWidget = () => {
                                 value={location}
                                 onChange={(e) => setLocation(e.target.value)}
                             />
+                            <button
+                                type="button"
+                                onClick={() => setIsMapOpen(true)}
+                                className="ml-2 p-1.5 hover:bg-gray-200 rounded-full transition-colors text-indigo-600"
+                                title="Pick on Map"
+                            >
+                                <MapIcon className="h-4 w-4" />
+                            </button>
                         </div>
                     </div>
 
@@ -79,6 +100,41 @@ export const HeroSearchWidget = () => {
                     </div>
                 </form>
             </div>
+
+            {/* Map Modal */}
+            <AnimatePresence>
+                {isMapOpen && (
+                    <Dialog
+                        static
+                        as={motion.div}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        open={isMapOpen}
+                        onClose={() => setIsMapOpen(false)}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                    >
+                        <Dialog.Panel className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-6">
+                            <h3 className="text-lg font-bold mb-4">Select Location</h3>
+                            <LocationPicker onLocationSelect={handleLocationSelect} />
+                            <div className="mt-4 flex justify-end gap-2">
+                                <button
+                                    onClick={() => setIsMapOpen(false)}
+                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                                >
+                                    Close
+                                </button>
+                                <button
+                                    onClick={() => setIsMapOpen(false)}
+                                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                                >
+                                    Confirm
+                                </button>
+                            </div>
+                        </Dialog.Panel>
+                    </Dialog>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 };

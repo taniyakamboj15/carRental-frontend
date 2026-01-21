@@ -7,7 +7,9 @@ export interface User {
     role: 'customer' | 'admin';
     kyc_verified: boolean;
     kyc_status: 'pending' | 'submitted' | 'verified' | 'rejected';
+    kyc_document_url?: string;
     phone_number?: string;
+    city?: string;
 }
 
 export interface AuthResponse {
@@ -25,4 +27,5 @@ export interface RegisterData {
     password: string;
     full_name?: string;
     phone_number?: string;
+    city?: string;
 }

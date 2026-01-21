@@ -1,6 +1,7 @@
 import type { Booking } from '@/types/booking';
 import { BookingStatus } from '@/types/booking';
 import { Button } from '@/components/common/Button';
+import { MapPin, User, Phone } from 'lucide-react';
 
 interface BookingCardProps {
     booking: Booking;
@@ -42,6 +43,32 @@ export const BookingCard = ({ booking, onCancel, onPay }: BookingCardProps) => {
                     <p className="text-gray-500">Total Amount</p>
                     <p className="font-medium">${booking.total_amount}</p>
                 </div>
+                {booking.pickup_location && (
+                    <div className="col-span-2 flex items-start gap-2 mt-2 pt-2 border-t border-gray-100">
+                        <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
+                        <div>
+                            <p className="text-gray-500 text-xs uppercase tracking-wide">Pickup Location</p>
+                            <p className="font-medium text-gray-900">{booking.pickup_location}</p>
+                        </div>
+                    </div>
+                )}
+                {booking.driver_name && (
+                    <div className="col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-100 mt-2">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Driver Details</p>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                                <User className="h-4 w-4 text-gray-400" />
+                                <span className="font-medium text-gray-900">{booking.driver_name}</span>
+                            </div>
+                            {booking.driver_contact && (
+                                <div className="flex items-center gap-2">
+                                    <Phone className="h-4 w-4 text-green-600" />
+                                    <span className="font-bold text-green-700">{booking.driver_contact}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="mt-6 flex gap-3">

@@ -11,6 +11,8 @@ import { Register } from '@/pages/Register';
 import { Home } from '@/pages/Home';
 import { Vehicles } from '@/pages/Vehicles';
 import { BookingHistory } from '@/pages/BookingHistory';
+import { AdminDashboard } from '@/pages/AdminDashboard';
+import { Profile } from '@/pages/Profile';
 
 const queryClient = new QueryClient();
 
@@ -54,6 +56,16 @@ const AppRoutes = () => {
           <Route path="/bookings" element={
             <PageTransition>
               <BookingHistory />
+            </PageTransition>
+          } />
+          <Route path="/admin" element={
+            <PageTransition>
+                <AdminDashboard />
+            </PageTransition>
+          } />
+          <Route path="/profile" element={
+            <PageTransition>
+                <Profile />
             </PageTransition>
           } />
         </Route>

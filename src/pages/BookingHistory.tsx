@@ -7,13 +7,12 @@ import { PaymentModal } from '@/components/features/PaymentModal';
 
 
 export const BookingHistory = () => {
-    // We ideally would fetch vehicle details here too, or do it inside the card.
-    // For simplicity, we just list the bookings.
+
     const { data: bookings, isLoading, error, refetch } = useQuery({
         queryKey: ['bookings'],
         queryFn: async () => {
             const { data } = await api.get<Booking[]>('/bookings/');
-            // Sort by latest created/start date
+          
             return data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         }
     });

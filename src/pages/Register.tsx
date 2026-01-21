@@ -91,6 +91,15 @@ export const Register = () => {
                     {...register('phone_number')}
                 />
 
+                <Input
+                    label="City"
+                    type="text"
+                    placeholder="e.g. New York"
+                    className="bg-gray-50/50"
+                    error={errors.city?.message}
+                    {...register('city', { required: 'City is required for location services' })}
+                />
+
                 <div className="pt-2">
                     <Button type="submit" className="w-full shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/40 transition-shadow" isLoading={isLoading}>
                         Create Account

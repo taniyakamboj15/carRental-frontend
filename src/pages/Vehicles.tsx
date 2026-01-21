@@ -1,27 +1,29 @@
-import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import api from '@/api/axios';
+import { useVehicles } from '@/hooks/useVehicles';
 import type { Vehicle } from '@/types/vehicle';
 import { VehicleCard } from '@/components/features/VehicleCard';
 import { useAuth } from '@/context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
 import { BookingModal } from '@/components/features/BookingModal';
 
 
 export const Vehicles = () => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+
+    const locationStr = searchParams.get('location') || '';
+    const startDateStr = searchParams.get('start_date') || '';
+    const endDateStr = searchParams.get('end_date') || '';
 
     const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const { data: vehicles, isLoading, error } = useQuery({
-        queryKey: ['vehicles'],
-        queryFn: async () => {
-            const { data } = await api.get<Vehicle[]>('/vehicles/');
-            return data;
-        },
+    const { data: vehicles, isLoading, error } = useVehicles({
+        location: locationStr,
+        startDate: startDateStr,
+        endDate: endDateStr
     });
 
     const handleBook = (vehicle: Vehicle) => {
@@ -65,16 +67,28 @@ export const Vehicles = () => {
         );
     }
 
+    let heading = "Available Fleets";
+    if (user?.is_superuser) {
+        heading = "Available Fleets";
+    } else if (locationStr) {
+        heading = `Available Fleet in ${locationStr}`;
+    } else if (user?.city) {
+        heading = `Available Fleet in ${user.city}`;
+    }
+
     return (
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 pt-24">
             <BookingModal
                 isOpen={isModalOpen}
                 closeModal={() => setIsModalOpen(false)}
                 vehicle={selectedVehicle}
+                initialLocation={locationStr || user?.city || ''}
+                initialStartDate={startDateStr}
+                initialEndDate={endDateStr}
             />
             <div className="mb-8 flex items-end justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Available Vehicles</h1>
+                    <h1 className="text-3xl font-bold text-gray-900">{heading}</h1>
                     <p className="mt-2 text-gray-600">Choose from our wide range of premium vehicles.</p>
                 </div>
                 {/* Filter controls could go here */}

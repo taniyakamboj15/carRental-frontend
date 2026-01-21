@@ -29,6 +29,7 @@ export const Navbar = () => {
         { name: 'Home', href: '/' },
         { name: 'Fleet', href: '/vehicles' },
         ...(isAuthenticated ? [{ name: 'My Bookings', href: '/bookings' }] : []),
+        ...(user?.is_superuser ? [{ name: 'Admin Dashboard', href: '/admin' }] : []),
     ];
 
     const isActive = (path: string) => location.pathname === path;
@@ -98,6 +99,20 @@ export const Navbar = () => {
                                             leaveTo="transform opacity-0 scale-95"
                                         >
                                             <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <Link
+                                                            to="/profile"
+                                                            className={clsx(
+                                                                active ? 'bg-gray-50' : '',
+                                                                'flex w-full items-center px-4 py-2 text-sm text-gray-700'
+                                                            )}
+                                                        >
+                                                            <User className="mr-2 h-4 w-4" />
+                                                            Profile
+                                                        </Link>
+                                                    )}
+                                                </Menu.Item>
                                                 <Menu.Item>
                                                     {({ active }) => (
                                                         <button

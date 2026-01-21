@@ -20,7 +20,7 @@ export const Login = () => {
         setError(null);
         try {
             await login(data);
-            navigate('/vehicles'); // Redirect to vehicles or dashboard after login
+            navigate('/vehicles');
         } catch (err) {
             console.error(err);
             setError('Invalid email or password. Please try again.');

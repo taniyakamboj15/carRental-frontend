@@ -15,4 +15,7 @@ export interface Booking {
     total_amount: number;
     status: BookingStatus;
     created_at: string;
+    pickup_location?: string;
+    driver_name?: string;
+    driver_contact?: string;
 }
