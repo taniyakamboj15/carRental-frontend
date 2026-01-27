@@ -1,13 +1,17 @@
-import { useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Check, X, ExternalLink } from 'lucide-react';
-import api from '@/api/axios';
+import { Plus } from 'lucide-react';
+import { api } from '@/services/api';
 import type { Vehicle } from '@/types/vehicle';
-import type { User } from '@/types/auth';
+import type { User } from '@/types/types';
 import { Button } from '@/components/common/Button';
-import { toast } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { VehicleCard } from '@/components/features/VehicleCard';
-import { AddVehicleModal } from '../components/features/AddVehicleModal';
+import { AddVehicleModal } from '@/components/features/AddVehicleModal';
+import { PendingKYCSection } from '@/components/features/PendingKYCSection';
+import { useAuth } from '@/hooks/useAuth';
+
+// Helper for data-userid extraction could be placed here or inline in handlers
 
 export const AdminDashboard = () => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -20,15 +24,30 @@ export const AdminDashboard = () => {
         },
     });
 
-    const { data: users, refetch: refetchUsers } = useQuery({
-        queryKey: ['admin-users'],
-        queryFn: async () => {
-             const { data } = await api.get<User[]>('/users/');
-             return data;
-        }
-    });
+    const [pendingKYC, setPendingKYC] = useState<User[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const { logout } = useAuth();
 
-    const pendingKYC = users?.filter(u => u.kyc_status === 'submitted') || [];
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const { data } = await api.get<User[]>('/users/');
+                setPendingKYC(data.filter(u => u.kyc_status === 'submitted'));
+            } catch (err: any) {
+                console.error('Failed to fetch users:', err);
+                if (err.response?.status === 403) {
+                    setError('Access denied. Please logout and login again with admin credentials.');
+                } else {
+                    setError('Failed to load users');
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUsers();
+    }, []);
 
     const handleVehicleAdded = () => {
         refetch();
@@ -38,11 +57,59 @@ export const AdminDashboard = () => {
         try {
             await api.put(`/users/${userId}/kyc`, { kyc_status: status });
             toast.success(`User KYC ${status}`);
-            refetchUsers();
+            // Re-fetch pending KYC list after action
+            const { data } = await api.get<User[]>('/users/');
+            setPendingKYC(data.filter(u => u.kyc_status === 'submitted'));
         } catch (error) {
             toast.error("Failed to update status");
         }
     };
+
+    const handleVerifyKYC = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+        const userId = e.currentTarget.dataset.userid;
+        if (userId) handleKYCAction(Number(userId), 'verified');
+    }, [handleKYCAction]);
+
+    const handleRejectKYC = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+        const userId = e.currentTarget.dataset.userid;
+        if (userId) handleKYCAction(Number(userId), 'rejected');
+    }, [handleKYCAction]);
+
+    const handleOpenAddModal = useCallback(() => {
+        setIsAddModalOpen(true);
+    }, []);
+
+    const handleCloseAddModal = useCallback(() => {
+        setIsAddModalOpen(false);
+    }, []);
+
+    const handleSuccessVehicleAdd = useCallback(() => {
+        handleVehicleAdded();
+    }, [handleVehicleAdded]);
+
+    // Empty handler for vehicle card onBook to avoid anonymous function
+    const handleNoOpBook = useCallback(() => { }, []);
+
+    if (error) {
+        return (
+            <div className="container mx-auto px-4 py-8">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                    <h2 className="text-2xl font-bold text-red-700 mb-4">Access Error</h2>
+                    <p className="text-red-600 mb-6">{error}</p>
+                    <button
+                        onClick={logout}
+                        className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                    >
+                        Logout and Login Again
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (loading) {
+        return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    }
 
     return (
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 pt-24">
@@ -51,62 +118,35 @@ export const AdminDashboard = () => {
                     <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
                     <p className="mt-2 text-gray-600">Manage fleet and view statistics.</p>
                 </div>
-                <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2">
+                <Button onClick={handleOpenAddModal} className="flex items-center gap-2">
                     <Plus className="h-5 w-5" />
                     Add Vehicle
                 </Button>
             </div>
 
-            {pendingKYC.length > 0 && (
-                <div className="mb-12">
-                    <h2 className="text-xl font-semibold mb-4 text-gray-900 border-b pb-2">Pending KYC Approvals ({pendingKYC.length})</h2>
-                    <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                        <ul className="divide-y divide-gray-200">
-                            {pendingKYC.map((user) => (
-                                <li key={user.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50 flex items-center justify-between">
-                                    <div className="flex-1">
-                                        <div className="flex items-center justify-between">
-                                            <p className="text-sm font-medium text-indigo-600 truncate">{user.full_name}</p>
-                                            <a href={user.kyc_document_url} target="_blank" rel="noreferrer" className="ml-2 flex-shrink-0 flex items-center text-xs text-gray-500 hover:text-gray-700">
-                                                <ExternalLink className="h-4 w-4 mr-1" /> View Document
-                                            </a>
-                                        </div>
-                                        <div className="mt-2 text-sm text-gray-500">
-                                            <p>{user.email} • {user.phone_number}</p>
-                                        </div>
-                                    </div>
-                                    <div className="ml-4 flex items-center space-x-2">
-                                        <Button size="sm" onClick={() => handleKYCAction(user.id, 'verified')} className="bg-green-600 hover:bg-green-700 text-white">
-                                            <Check className="h-4 w-4" />
-                                        </Button>
-                                         <Button size="sm" onClick={() => handleKYCAction(user.id, 'rejected')} className="bg-red-600 hover:bg-red-700 text-white">
-                                            <X className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </div>
-            )}
+            <PendingKYCSection
+                users={pendingKYC}
+                onVerify={handleVerifyKYC}
+                onReject={handleRejectKYC}
+            />
 
             <h2 className="text-xl font-semibold mb-4 text-gray-900">Fleet Management</h2>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {vehicles?.map((vehicle) => (
                     <div key={vehicle.id} className="relative group">
-                         {/* We can reuse VehicleCard or make a specific AdminVehicleCard with Edit/Delete */}
-                         {/* For speed, reusing VehicleCard but maybe disabling booking or adding overlay */}
-                        <VehicleCard vehicle={vehicle} onBook={() => {}} /> 
-                        
+                        {/* We can reuse VehicleCard or make a specific AdminVehicleCard with Edit/Delete */}
+                        {/* For speed, reusing VehicleCard but maybe disabling booking or adding overlay */}
+                        <VehicleCard vehicle={vehicle} onBook={handleNoOpBook} />
+
                         {/* Admin Controls Overlay could go here */}
                     </div>
                 ))}
             </div>
 
-            <AddVehicleModal 
-                isOpen={isAddModalOpen} 
-                closeModal={() => setIsAddModalOpen(false)} 
-                onSuccess={handleVehicleAdded}
+            <AddVehicleModal
+                isOpen={isAddModalOpen}
+                closeModal={handleCloseAddModal}
+                onSuccess={handleSuccessVehicleAdd}
             />
         </div>
     );

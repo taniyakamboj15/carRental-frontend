@@ -1,11 +1,11 @@
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth'; // Updated import
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
-import type { LoginCredentials } from '@/types/auth';
-import { useState } from 'react';
+import type { LoginCredentials } from '@/types/types'; // Updated import
+import { useState, useCallback } from 'react';
 
 export const Login = () => {
     const { login } = useAuth();
@@ -15,27 +15,27 @@ export const Login = () => {
 
     const { register, handleSubmit, formState: { errors } } = useForm<LoginCredentials>();
 
-    const onSubmit = async (data: LoginCredentials) => {
+    const onSubmit = useCallback(async (data: LoginCredentials) => {
         setIsLoading(true);
         setError(null);
         try {
             await login(data);
             navigate('/vehicles');
-        } catch (err) {
+        } catch (err: unknown) {
             console.error(err);
             setError('Invalid email or password. Please try again.');
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [login, navigate]);
 
     return (
         <AuthLayout
             title="Sign in to your account"
             subtitle={
-                (<>
+                <>
                     Or <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500">create a new account</Link>
-                </>) as any
+                </>
             }
         >
             <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>

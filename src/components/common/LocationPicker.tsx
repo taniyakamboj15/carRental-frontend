@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Locate, Search, User } from 'lucide-react';
+import { Locate, Search } from 'lucide-react';
 import { useLocationPicker } from '@/hooks/useLocationPicker';
 import L from 'leaflet';
 
@@ -47,9 +47,9 @@ export const LocationPicker = ({ onLocationSelect }: LocationPickerProps) => {
     const { center, zoom, position, selectedAddress } = mapState;
 
     return (
-        <div className="flex flex-col h-[400px] w-full rounded-xl overflow-hidden border border-gray-200 shadow-inner z-0 bg-white"> 
+        <div className="flex flex-col h-[400px] w-full rounded-xl overflow-hidden border border-gray-200 shadow-inner z-0 bg-white">
             <div className="relative flex-1">
-                <MapContainer center={center} zoom={zoom} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
+                <MapContainer center={center} zoom={zoom} scrollWheelZoom={false} className="h-full w-full">
                     <ChangeView center={center} zoom={zoom} />
                     <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -57,8 +57,8 @@ export const LocationPicker = ({ onLocationSelect }: LocationPickerProps) => {
                     />
                     <LocationMarker onClick={handleMapClick} position={position} />
                 </MapContainer>
-                
-                <button 
+
+                <button
                     onClick={handleLocateMe}
                     className="absolute top-4 left-4 z-[400] bg-white p-2 rounded-lg shadow-md hover:bg-gray-50 text-indigo-600 transition-colors"
                     title="Use My Location"
@@ -85,7 +85,7 @@ export const LocationPicker = ({ onLocationSelect }: LocationPickerProps) => {
                     {searchResults.length > 0 && (
                         <ul className="mt-2 bg-white rounded-lg shadow-lg max-h-48 overflow-y-auto border border-gray-100 divide-y divide-gray-100">
                             {searchResults.map((result) => (
-                                <li 
+                                <li
                                     key={result.place_id}
                                     onClick={() => selectSearchResult(result)}
                                     className="px-3 py-2 text-xs hover:bg-indigo-50 cursor-pointer text-gray-700 truncate"

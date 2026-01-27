@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import api from '@/api/axios';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/services/api';
 import { toast } from 'react-hot-toast';
+import { useDispatch } from 'react-redux';
+import { setUser } from '@/store/slices/authSlice';
 
 interface ProfileUpdateData {
     full_name: string;
@@ -9,43 +11,48 @@ interface ProfileUpdateData {
 }
 
 export const useProfile = () => {
-    const [isLoading, setIsLoading] = useState(false);
-    const [kycLoading, setKycLoading] = useState(false);
+    const queryClient = useQueryClient();
+    const dispatch = useDispatch();
 
-    const updateProfile = async (formData: ProfileUpdateData) => {
-        setIsLoading(true);
-        try {
-            await api.put('/users/me', formData);
+    const updateProfileMutation = useMutation({
+        mutationFn: async (formData: ProfileUpdateData) => {
+            const { data } = await api.put('/users/me', formData);
+            return data;
+        },
+        onSuccess: (data) => {
             toast.success("Profile updated successfully");
-            return true;
-        } catch (error: any) {
-            toast.error(error.response?.data?.detail || "Update failed");
-            return false;
-        } finally {
-            setIsLoading(false);
+            dispatch(setUser(data)); // Update Redux store with new user data
+            queryClient.invalidateQueries({ queryKey: ['user'] });
+        },
+        onError: (error: unknown) => {
+            const err = error as { response?: { data?: { detail?: string } } };
+            toast.error(err.response?.data?.detail || "Update failed");
         }
-    };
+    });
 
-    const submitKYC = async (kycUrl: string) => {
-        setKycLoading(true);
-        try {
-            await api.post('/users/kyc', { document_url: kycUrl });
+    const kycMutation = useMutation({
+        mutationFn: async (kycUrl: string) => {
+            const { data } = await api.post('/users/kyc', { document_url: kycUrl });
+            return data;
+        },
+        onSuccess: () => {
             toast.success("KYC submitted for review");
-            // Reload to refresh user context with new KYC status
-            window.location.reload();
-            return true;
-        } catch (error: any) {
-            toast.error(error.response?.data?.detail || "KYC submission failed");
-            return false;
-        } finally {
-            setKycLoading(false);
+            // Assuming the backend returns the updated user object with new KYC status
+            // If not, we might need to manually update or refetch
+            // For now, let's dispatch if data looks like user, or invalidate 'user' query
+            queryClient.invalidateQueries({ queryKey: ['user'] });
+            window.location.reload(); // Keeping original behavior for deep state reset if needed, though mostly redundant with proper state mgmt
+        },
+        onError: (error: unknown) => {
+            const err = error as { response?: { data?: { detail?: string } } };
+            toast.error(err.response?.data?.detail || "KYC submission failed");
         }
-    };
+    });
 
     return {
-        updateProfile,
-        submitKYC,
-        isLoading,
-        kycLoading
+        updateProfile: updateProfileMutation.mutateAsync,
+        submitKYC: kycMutation.mutateAsync,
+        isLoading: updateProfileMutation.isPending,
+        kycLoading: kycMutation.isPending
     };
 };

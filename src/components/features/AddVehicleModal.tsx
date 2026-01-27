@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { X, Upload } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import api from '@/api/axios';
@@ -14,7 +14,7 @@ interface AddVehicleModalProps {
 
 export const AddVehicleModal = ({ isOpen, closeModal, onSuccess }: AddVehicleModalProps) => {
     const [isLoading, setIsLoading] = useState(false);
-    
+
     // Form State
     const [formData, setFormData] = useState({
         make: '',
@@ -62,8 +62,8 @@ export const AddVehicleModal = ({ isOpen, closeModal, onSuccess }: AddVehicleMod
                 image_url: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=2672&auto=format&fit=crop'
             });
         } catch (err: any) {
-             console.error(err);
-             toast.error(err.response?.data?.detail || "Failed to add vehicle");
+            console.error(err);
+            toast.error(err.response?.data?.detail || "Failed to add vehicle");
         } finally {
             setIsLoading(false);
         }
@@ -86,7 +86,7 @@ export const AddVehicleModal = ({ isOpen, closeModal, onSuccess }: AddVehicleMod
 
                 <div className="fixed inset-0 overflow-y-auto">
                     <div className="flex min-h-full items-center justify-center p-4 text-center">
-                         <Transition.Child
+                        <Transition.Child
                             as={Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 scale-95"
@@ -115,7 +115,7 @@ export const AddVehicleModal = ({ isOpen, closeModal, onSuccess }: AddVehicleMod
                                         <Input label="Daily Rate ($)" name="daily_rate" type="number" step="0.01" value={formData.daily_rate} onChange={handleChange} required />
                                         <Input label="Location" name="location" value={formData.location} onChange={handleChange} required placeholder="City or Base Address" />
                                     </div>
-                                    
+
                                     <div className="bg-gray-50 p-4 rounded-lg space-y-4 border border-gray-100">
                                         <h4 className="font-medium text-gray-700">Driver Details</h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

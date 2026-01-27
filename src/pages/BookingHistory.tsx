@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import api from '@/api/axios';
+import { api } from '@/services/api';
 import { BookingCard } from '@/components/features/BookingCard';
 import type { Booking } from '@/types/booking';
 import { useState } from 'react';
@@ -12,7 +12,7 @@ export const BookingHistory = () => {
         queryKey: ['bookings'],
         queryFn: async () => {
             const { data } = await api.get<Booking[]>('/bookings/');
-          
+
             return data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         }
     });

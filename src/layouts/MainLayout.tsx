@@ -1,16 +1,12 @@
-import type { ReactNode } from 'react';
+import { Outlet } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 
-interface MainLayoutProps {
-    children: ReactNode;
-}
-
-export const MainLayout = ({ children }: MainLayoutProps) => {
+export const MainLayout = () => {
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar />
             <main>
-                {children}
+                <Outlet />
             </main>
         </div>
     );

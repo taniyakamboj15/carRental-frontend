@@ -1,6 +1,7 @@
 import type { Booking } from '@/types/booking';
 import { BookingStatus } from '@/types/booking';
 import { Button } from '@/components/common/Button';
+import { useCallback } from 'react';
 import { MapPin, User, Phone } from 'lucide-react';
 
 interface BookingCardProps {
@@ -10,6 +11,14 @@ interface BookingCardProps {
 }
 
 export const BookingCard = ({ booking, onCancel, onPay }: BookingCardProps) => {
+    const handlePay = useCallback(() => {
+        onPay(booking);
+    }, [onPay, booking]);
+
+    const handleCancel = useCallback(() => {
+        onCancel(booking.id);
+    }, [onCancel, booking.id]);
+
     return (
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
@@ -78,7 +87,7 @@ export const BookingCard = ({ booking, onCancel, onPay }: BookingCardProps) => {
                             variant="primary"
                             size="sm"
                             className="w-full"
-                            onClick={() => onPay(booking)}
+                            onClick={handlePay}
                         >
                             Pay Now
                         </Button>
@@ -86,7 +95,7 @@ export const BookingCard = ({ booking, onCancel, onPay }: BookingCardProps) => {
                             variant="outline"
                             size="sm"
                             className="w-full text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
-                            onClick={() => onCancel(booking.id)}
+                            onClick={handleCancel}
                         >
                             Cancel
                         </Button>

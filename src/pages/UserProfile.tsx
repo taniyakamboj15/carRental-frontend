@@ -1,81 +1,116 @@
 import { useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useForm } from 'react-hook-form';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { CheckCircle, AlertCircle, Clock, XCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useCallback } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 
-export const Profile = () => {
-    const { user } = useAuth(); 
+const KYC_BADGES = {
+    verified: { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Verified' },
+    submitted: { color: 'bg-yellow-100 text-yellow-800', icon: Clock, label: 'Submitted' },
+    rejected: { color: 'bg-red-100 text-red-800', icon: XCircle, label: 'Rejected' },
+    pending: { color: 'bg-gray-100 text-gray-800', icon: AlertCircle, label: 'Pending' }
+} as const;
+
+export const UserProfile = () => {
+    const { user } = useAuth();
     const { updateProfile, submitKYC, isLoading, kycLoading } = useProfile();
     const [isEditing, setIsEditing] = useState(false);
-    
-    const [formData, setFormData] = useState({
-        full_name: user?.full_name || '',
-        phone_number: user?.phone_number || '',
-        city: user?.city || ''
+
+    // Profile Form
+    const { register: registerProfile, handleSubmit: handleProfileSubmit } = useForm<{
+        full_name: string;
+        phone_number: string;
+        city: string;
+    }>({
+        defaultValues: {
+            full_name: user?.full_name || '',
+            phone_number: user?.phone_number || '',
+            city: user?.city || ''
+        },
+        values: { // Update form when user data loads
+            full_name: user?.full_name || '',
+            phone_number: user?.phone_number || '',
+            city: user?.city || ''
+        }
     });
 
-    const [kycUrl, setKycUrl] = useState(user?.kyc_document_url || '');
+    // KYC Form
+    const { register: registerKyc, handleSubmit: handleKycSubmit, formState: { errors: kycErrors } } = useForm<{ kycUrl: string }>({
+        defaultValues: {
+            kycUrl: user?.kyc_document_url || ''
+        },
+        values: {
+            kycUrl: user?.kyc_document_url || ''
+        }
+    });
 
-    const handleUpdateProfile = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const success = await updateProfile(formData);
-        if (success) setIsEditing(false);
-    };
-
-    const handleSubmitKYC = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!kycUrl) return toast.error("Please enter a document URL");
-        await submitKYC(kycUrl);
-    };
-
-    const getKYCBadge = () => {
-        switch (user?.kyc_status) {
-            case 'verified':
-                return <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800"><CheckCircle className="w-4 h-4 mr-1"/> Verified</span>;
-            case 'submitted':
-                return <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800"><Clock className="w-4 h-4 mr-1"/> Submitted</span>;
-            case 'rejected':
-                return <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800"><XCircle className="w-4 h-4 mr-1"/> Rejected</span>;
-            default:
-                return <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800"><AlertCircle className="w-4 h-4 mr-1"/> Pending</span>;
+    const onProfileSubmit = async (data: { full_name: string; phone_number: string; city: string }) => {
+        try {
+            await updateProfile(data);
+            setIsEditing(false);
+        } catch (error) {
+            // Error handled by hook toast
         }
     };
+
+    const onKycSubmit = async (data: { kycUrl: string }) => {
+        if (!data.kycUrl) return toast.error("Please enter a document URL");
+        try {
+            await submitKYC(data.kycUrl);
+        } catch (error) {
+            // Error handled by hook toast
+        }
+    };
+
+    const handleToggleEdit = useCallback(() => {
+        setIsEditing(prev => !prev);
+    }, []);
+
+    const getKYCBadge = useCallback(() => {
+        const status = user?.kyc_status as keyof typeof KYC_BADGES || 'pending';
+        const config = KYC_BADGES[status] || KYC_BADGES.pending;
+        const Icon = config.icon;
+
+        return (
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${config.color}`}>
+                <Icon className="w-4 h-4 mr-1" /> {config.label}
+            </span>
+        );
+    }, [user?.kyc_status]);
 
     if (!user) return <div>Loading...</div>;
 
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
             <h1 className="text-3xl font-bold text-gray-900 mb-8">My Profile</h1>
-            
+
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {/* Personal Info Card */}
                 <div className="bg-white shadow rounded-lg p-6">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-xl font-semibold text-gray-800">Personal Details</h2>
-                        <Button variant="outline" size="sm" onClick={() => setIsEditing(!isEditing)}>
+                        <Button variant="outline" size="sm" onClick={handleToggleEdit}>
                             {isEditing ? 'Cancel' : 'Edit'}
                         </Button>
                     </div>
 
                     {isEditing ? (
-                        <form onSubmit={handleUpdateProfile} className="space-y-4">
-                            <Input 
-                                label="Full Name" 
-                                value={formData.full_name} 
-                                onChange={e => setFormData({...formData, full_name: e.target.value})} 
+                        <form onSubmit={handleProfileSubmit(onProfileSubmit)} className="space-y-4">
+                            <Input
+                                label="Full Name"
+                                {...registerProfile('full_name')}
                             />
-                            <Input 
-                                label="Phone" 
-                                value={formData.phone_number} 
-                                onChange={e => setFormData({...formData, phone_number: e.target.value})} 
+                            <Input
+                                label="Phone"
+                                {...registerProfile('phone_number')}
                             />
-                             <Input 
-                                label="City" 
-                                value={formData.city} 
-                                onChange={e => setFormData({...formData, city: e.target.value})} 
+                            <Input
+                                label="City"
+                                {...registerProfile('city')}
                             />
                             <Button type="submit" isLoading={isLoading} className="w-full">Save Changes</Button>
                         </form>
@@ -104,7 +139,7 @@ export const Profile = () => {
                 {/* KYC Card */}
                 <div className="bg-white shadow rounded-lg p-6">
                     <h2 className="text-xl font-semibold text-gray-800 mb-4">KYC Verification</h2>
-                    
+
                     <div className="mb-6">
                         <div className="flex items-center justify-between">
                             <span className="text-gray-600">Current Status:</span>
@@ -118,13 +153,13 @@ export const Profile = () => {
                     </div>
 
                     {(user.kyc_status === 'pending' || user.kyc_status === 'rejected') && (
-                        <form onSubmit={handleSubmitKYC} className="space-y-4 border-t pt-4">
+                        <form onSubmit={handleKycSubmit(onKycSubmit)} className="space-y-4 border-t pt-4">
                             <h3 className="font-medium text-gray-700">Submit Verification</h3>
-                             <Input 
-                                label="Document URL (ID Card / License)" 
+                            <Input
+                                label="Document URL (ID Card / License)"
                                 placeholder="https://example.com/my-id.jpg"
-                                value={kycUrl} 
-                                onChange={e => setKycUrl(e.target.value)} 
+                                error={kycErrors.kycUrl?.message}
+                                {...registerKyc('kycUrl', { required: 'Document URL is required' })}
                             />
                             <Button type="submit" isLoading={kycLoading} className="w-full">
                                 {user.kyc_status === 'rejected' ? 'Resubmit KYC' : 'Submit KYC'}
@@ -134,7 +169,7 @@ export const Profile = () => {
                             </p>
                         </form>
                     )}
-                    
+
                     {user.kyc_status === 'submitted' && (
                         <div className="bg-blue-50 p-4 rounded-md text-blue-700 text-sm">
                             Your documents are under review. This usually takes 24 hours.

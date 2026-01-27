@@ -2,9 +2,9 @@ import { motion } from 'framer-motion';
 import { useVehicles } from '@/hooks/useVehicles';
 import type { Vehicle } from '@/types/vehicle';
 import { VehicleCard } from '@/components/features/VehicleCard';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { BookingModal } from '@/components/features/BookingModal';
 
 
@@ -26,14 +26,14 @@ export const Vehicles = () => {
         endDate: endDateStr
     });
 
-    const handleBook = (vehicle: Vehicle) => {
+    const handleBook = useCallback((vehicle: Vehicle) => {
         if (!isAuthenticated) {
             navigate('/login');
             return;
         }
         setSelectedVehicle(vehicle);
         setIsModalOpen(true);
-    };
+    }, [isAuthenticated, navigate]);
 
     // Animation variants
     const container = {

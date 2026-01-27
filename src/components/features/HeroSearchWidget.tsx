@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, MapPin, Search, Map as MapIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,20 +13,39 @@ export const HeroSearchWidget = () => {
 
     const [isMapOpen, setIsMapOpen] = useState(false);
 
-    const handleSearch = (e: React.FormEvent) => {
+    const handleSearch = useCallback((e: React.FormEvent) => {
         e.preventDefault();
         const params = new URLSearchParams();
         if (location) params.append('location', location);
         if (dateFrom) params.append('start_date', dateFrom);
         if (dateTo) params.append('end_date', dateTo);
-        
-        navigate(`/vehicles?${params.toString()}`);
-    };
 
-    const handleLocationSelect = (loc: string) => {
-        setLocation(loc); // In real app, might want human readable address
-        // setIsMapOpen(false); // Let user confirm or close manually? Better close for flow
-    };
+        navigate(`/vehicles?${params.toString()}`);
+    }, [location, dateFrom, dateTo, navigate]);
+
+    const handleLocationSelect = useCallback((loc: string) => {
+        setLocation(loc);
+    }, []);
+
+    const handleLocationChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setLocation(e.target.value);
+    }, []);
+
+    const handleOpenMap = useCallback(() => {
+        setIsMapOpen(true);
+    }, []);
+
+    const handleCloseMap = useCallback(() => {
+        setIsMapOpen(false);
+    }, []);
+
+    const handleDateFromChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setDateFrom(e.target.value);
+    }, []);
+
+    const handleDateToChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setDateTo(e.target.value);
+    }, []);
 
     return (
         <motion.div
@@ -47,11 +66,11 @@ export const HeroSearchWidget = () => {
                                 placeholder="City or Airport"
                                 className="bg-transparent border-none p-0 text-gray-900 placeholder-gray-400 focus:ring-0 w-full font-medium"
                                 value={location}
-                                onChange={(e) => setLocation(e.target.value)}
+                                onChange={handleLocationChange}
                             />
                             <button
                                 type="button"
-                                onClick={() => setIsMapOpen(true)}
+                                onClick={handleOpenMap}
                                 className="ml-2 p-1.5 hover:bg-gray-200 rounded-full transition-colors text-indigo-600"
                                 title="Pick on Map"
                             >
@@ -70,7 +89,7 @@ export const HeroSearchWidget = () => {
                                     type="date"
                                     className="bg-transparent border-none p-0 text-gray-900 focus:ring-0 w-full font-medium"
                                     value={dateFrom}
-                                    onChange={(e) => setDateFrom(e.target.value)}
+                                    onChange={handleDateFromChange}
                                 />
                             </div>
                         </div>
@@ -82,7 +101,7 @@ export const HeroSearchWidget = () => {
                                     type="date"
                                     className="bg-transparent border-none p-0 text-gray-900 focus:ring-0 w-full font-medium"
                                     value={dateTo}
-                                    onChange={(e) => setDateTo(e.target.value)}
+                                    onChange={handleDateToChange}
                                 />
                             </div>
                         </div>
@@ -111,7 +130,7 @@ export const HeroSearchWidget = () => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         open={isMapOpen}
-                        onClose={() => setIsMapOpen(false)}
+                        onClose={handleCloseMap}
                         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
                     >
                         <Dialog.Panel className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-6">
@@ -119,13 +138,13 @@ export const HeroSearchWidget = () => {
                             <LocationPicker onLocationSelect={handleLocationSelect} />
                             <div className="mt-4 flex justify-end gap-2">
                                 <button
-                                    onClick={() => setIsMapOpen(false)}
+                                    onClick={handleCloseMap}
                                     className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
                                 >
                                     Close
                                 </button>
                                 <button
-                                    onClick={() => setIsMapOpen(false)}
+                                    onClick={handleCloseMap}
                                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
                                 >
                                     Confirm

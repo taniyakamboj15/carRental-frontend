@@ -4,7 +4,26 @@ import { motion } from 'framer-motion';
 import { HeroSearchWidget } from '@/components/features/HeroSearchWidget';
 import { useAuth } from '@/context/AuthContext';
 
-const HERO_IMAGE = "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2830&auto=format&fit=crop";
+const FEATURES = [
+    {
+        icon: Trophy,
+        title: 'Premium Fleet',
+        desc: 'Curated selection of high-end vehicles maintained to perfection.',
+        color: 'bg-yellow-100 text-yellow-600'
+    },
+    {
+        icon: Zap,
+        title: 'Instant Booking',
+        desc: 'Seamless digital process. Book and unlock your car in minutes.',
+        color: 'bg-blue-100 text-blue-600'
+    },
+    {
+        icon: Shield,
+        title: 'Full Insurance',
+        desc: 'Drive with peace of mind. Comprehensive coverage included.',
+        color: 'bg-green-100 text-green-600'
+    },
+];
 
 export const Home = () => {
     return (
@@ -13,8 +32,7 @@ export const Home = () => {
             <div className="relative h-screen min-h-[700px] flex flex-col justify-center items-center overflow-hidden pb-20">
                 {/* Background Image with Overlay */}
                 <div
-                    className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-                    style={{ backgroundImage: `url(${HERO_IMAGE})` }}
+                    className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-[url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2830&auto=format&fit=crop')]"
                 >
                     <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
                 </div>
@@ -82,26 +100,7 @@ export const Home = () => {
                     </motion.div>
 
                     <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
-                        {[
-                            {
-                                icon: Trophy,
-                                title: 'Premium Fleet',
-                                desc: 'Curated selection of high-end vehicles maintained to perfection.',
-                                color: 'bg-yellow-100 text-yellow-600'
-                            },
-                            {
-                                icon: Zap,
-                                title: 'Instant Booking',
-                                desc: 'Seamless digital process. Book and unlock your car in minutes.',
-                                color: 'bg-blue-100 text-blue-600'
-                            },
-                            {
-                                icon: Shield,
-                                title: 'Full Insurance',
-                                desc: 'Drive with peace of mind. Comprehensive coverage included.',
-                                color: 'bg-green-100 text-green-600'
-                            },
-                        ].map((feature, index) => (
+                        {FEATURES.map((feature, index) => (
                             <motion.div
                                 key={feature.title}
                                 initial={{ opacity: 0, y: 20 }}

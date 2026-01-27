@@ -1,89 +1,42 @@
-import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from 'react-router-dom';
+import { RouterProvider } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '@/context/AuthContext';
-import { MainLayout } from '@/layouts/MainLayout';
+import { Provider } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
-import { AnimatePresence } from 'framer-motion';
-import { PageTransition } from '@/components/common/PageTransition';
+import { router } from '@/router/router';
+import { useInitializeAuth } from '@/hooks/useInitializeAuth';
+import { store } from '@/store';
 
-import { Login } from '@/pages/Login';
-import { Register } from '@/pages/Register';
-import { Home } from '@/pages/Home';
-import { Vehicles } from '@/pages/Vehicles';
-import { BookingHistory } from '@/pages/BookingHistory';
-import { AdminDashboard } from '@/pages/AdminDashboard';
-import { Profile } from '@/pages/Profile';
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
-const queryClient = new QueryClient();
+function AppContent() {
+  const { isInitializing } = useInitializeAuth();
 
-// Layout Wrapper
-const LayoutWrapper = () => (
-  <MainLayout>
-    <Outlet />
-  </MainLayout>
-);
-
-const AppRoutes = () => {
-  const location = useLocation();
+  if (isInitializing) {
+    return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  }
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        {/* Public/Auth Routes (No Main Navbar) */}
-        <Route path="/login" element={
-          <PageTransition>
-            <Login />
-          </PageTransition>
-        } />
-        <Route path="/register" element={
-          <PageTransition>
-            <Register />
-          </PageTransition>
-        } />
-
-        {/* Main App Routes (With Navbar) */}
-        <Route element={<LayoutWrapper />}>
-          <Route path="/" element={
-            <PageTransition>
-              <Home />
-            </PageTransition>
-          } />
-          <Route path="/vehicles" element={
-            <PageTransition>
-              <Vehicles />
-            </PageTransition>
-          } />
-          <Route path="/bookings" element={
-            <PageTransition>
-              <BookingHistory />
-            </PageTransition>
-          } />
-          <Route path="/admin" element={
-            <PageTransition>
-                <AdminDashboard />
-            </PageTransition>
-          } />
-          <Route path="/profile" element={
-            <PageTransition>
-                <Profile />
-            </PageTransition>
-          } />
-        </Route>
-      </Routes>
-    </AnimatePresence>
+    <>
+      <RouterProvider router={router} />
+      <Toaster position="top-center" />
+    </>
   );
-};
+}
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </Router>
-      <Toaster position="top-center" reverseOrder={false} />
-    </QueryClientProvider>
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <AppContent />
+      </QueryClientProvider>
+    </Provider>
   );
 }
 

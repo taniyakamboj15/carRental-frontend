@@ -1,11 +1,11 @@
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import type { RegisterData } from '@/types/auth';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 export const Register = () => {
     const { register: registerUser } = useAuth();
@@ -15,29 +15,30 @@ export const Register = () => {
 
     const { register, handleSubmit, formState: { errors } } = useForm<RegisterData>();
 
-    const onSubmit = async (data: RegisterData) => {
+    const onSubmit = useCallback(async (data: RegisterData) => {
         setIsLoading(true);
         setError(null);
         try {
             await registerUser(data);
             navigate('/vehicles');
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
             // Try to extract backend error message
-            const msg = err.response?.data?.detail || 'Registration failed. Please try again.';
+            const error = err as { response?: { data?: { detail?: string } } };
+            const msg = error.response?.data?.detail || 'Registration failed. Please try again.';
             setError(msg);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [registerUser, navigate]);
 
     return (
         <AuthLayout
             title="Create account"
             subtitle={
-                (<>
+                <>
                     Already have an account? <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">Sign in</Link>
-                </>) as any
+                </>
             }
         >
             <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>

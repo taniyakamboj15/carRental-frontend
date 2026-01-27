@@ -4,7 +4,7 @@ import { X, CreditCard, Lock } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import type { Booking } from '@/types/booking';
-import api from '@/api/axios';
+import { api } from '@/services/api';
 import { toast } from 'react-hot-toast';
 
 interface PaymentModalProps {
@@ -17,13 +17,6 @@ interface PaymentModalProps {
 export const PaymentModal = ({ isOpen, closeModal, booking, onPaymentSuccess }: PaymentModalProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    // const [success, setSuccess] = useState(false);
-
-    // Dummy form state - we won't actually send these to backend as per plan, 
-    // or just send amounts. The backend payments.py takes PaymentCreate schema.
-    // Let's check backend schema if I can finding it... 
-    // Actually in step 289: PaymentCreate needs `booking_id` and `amount`.
-    // It doesn't seem to take card details (which is good for security/dummy nature).
 
     const displayAmount = booking ? booking.total_amount : 0;
 
@@ -34,7 +27,8 @@ export const PaymentModal = ({ isOpen, closeModal, booking, onPaymentSuccess }: 
         setIsLoading(true);
         setError(null);
 
-        // Simulate network delay for "processing"
+        setError(null);
+
         await new Promise(resolve => setTimeout(resolve, 1500));
 
         try {
@@ -43,8 +37,8 @@ export const PaymentModal = ({ isOpen, closeModal, booking, onPaymentSuccess }: 
                 amount: booking.total_amount
             });
             toast.success("Payment Successful! Booking Confirmed.");
+            toast.success("Payment Successful! Booking Confirmed.");
             setTimeout(() => {
-                // setSuccess(false);
                 closeModal();
                 onPaymentSuccess();
             }, 1000);

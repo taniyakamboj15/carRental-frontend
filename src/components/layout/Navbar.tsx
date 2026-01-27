@@ -2,7 +2,7 @@ import { Fragment, useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Menu as MenuIcon, X, User, LogOut, ChevronDown } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
 
